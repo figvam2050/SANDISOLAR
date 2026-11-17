@@ -1,6 +1,6 @@
 # Project Engineering Rules & Agent Guidelines
 
-> **Проект:** COM-Box для інвертора Felicity Solar (IVAM / IVEM) та батарей Vision V-LFP48100  
+> **Проект:** COM-Box для інвертора SANDISOLAR (SD-PRO-EU 6.5K) та батарей Vision V-LFP48100  
 > **Цільові агенти:** Antigravity, OpenCode, Claude Code, Cursor  
 > **Стандарт розробки:** ub-mode (Robert C. Martin / Uncle Bob) + Hardware Safety + Token Economy
 

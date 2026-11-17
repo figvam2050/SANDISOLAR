@@ -216,7 +216,7 @@ hr {
 </head>
 <body>
 <h1 id="com-box-v13">Керівництво користувача та посібник з монтажу COM-Box V1.3</h1>
-<h3 id="bms-rs485-vision-15s-lifepo4-can-deye-hybrid-inverter">Інтелектуальний шлюз BMS RS485 (Vision 15S LiFePO4) → CAN (Deye Hybrid Inverter)</h3>
+<h3 id="bms-rs485-vision-15s-lifepo4-can-sandisolar-hybrid-inverter">Інтелектуальний шлюз BMS RS485 (Vision 15S LiFePO4) → CAN (SANDISOLAR Hybrid Inverter)</h3>
 <blockquote>
 <p><strong>Призначення документа:</strong> Практична інструкція для монтажників, сервісних інженерів та власників енергосистем. Охоплює виготовлення кабелів, налаштування перемикачів, введення в експлуатацію, світлодіодну індикацію та щоденне обслуговування.</p>
 </blockquote>
@@ -228,7 +228,7 @@ hr {
 <li><a href="#3-vision">Адресація та комутація акумуляторних блоків Vision</a></li>
 <li><a href="#4-dip-com-box">Налаштування DIP-перемикачів на COM-Box</a></li>
 <li><a href="#5-led">Світлодіодна індикація (LED): Як читати стан коробки</a></li>
-<li><a href="#6-deye">Налаштування гібридного інвертора Deye</a></li>
+<li><a href="#6-felicity">Налаштування інвертора SANDISOLAR</a></li>
 <li><a href="#7-">Режими експлуатації, безпека та авто-балансування</a></li>
 <li><a href="#8-dip-11">Практичні рекомендації щодо вибору комбінацій DIP-перемикачів при графіках відключень</a></li>
 <li><a href="#9-">Покроковий чек-лист першого запуску</a></li>
@@ -241,16 +241,16 @@ hr {
 <h2 id="1-com-box">1. Огляд системи та призначення COM-Box</h2>
 <h3 id="11">1.1. Яку проблему вирішує пристрій</h3>
 <p>Акумуляторні батареї <strong>Vision V-LFP48100</strong> (15 послідовних елементів LiFePO4, номінальна напруга 48 В, ємність 100 А·год) оснащені внутрішньою платою керування (BMS), яка підтримує обмін даними за протоколом <strong>RS-485 (Modbus RTU)</strong>. </p>
-<p>Гібридні інвертори <strong>Deye</strong> (а також сумісні SunSynk) для точного керування зарядом та розрядом очікують високошвидкісну автомобільну шину <strong>CAN (протокол Pylontech CAN v2.0.6, 500 кбіт/с)</strong>.</p>
+<p>Гібридні інвертори <strong>SANDISOLAR</strong> (а також сумісні IVEM / IVAM) для точного керування зарядом та розрядом очікують високошвидкісну автомобільну шину <strong>CAN (протокол Pylontech CAN v2.0.6, 500 кбіт/с)</strong>.</p>
 <p>Без пристрою COM-Box інвертор змушений працювати з літієвими батареями в «сліпому» свинцево-кислотному режимі (по загальній напрузі), що призводить до:
 * Передчасного вимкнення інвертора при розряді.
 * Небезпеки перезаряду або перегріву окремих слабких комірок.
 * Неможливості побачити справжній залишок заряду (SOC %) на екрані інвертора.</p>
 <p><strong>COM-Box</strong> є компактним інтелектуальним апаратним мостом-перекладачем, який розміщується між акумуляторним банком та інвертором.</p>
 <pre><code>┌────────────────────────────────┐         RS-485 (Modbus RTU)        ┌──────────────┐      Крос-кабель CAN (500 kbps)      ┌────────────────┐
-│ Батарейний банк Vision 15S     │ ────────────────────────────────── │   COM-Box    │ ─────────────────────────────────── │ Інвертор Deye  │
+│ Батарейний банк Vision 15S     │ ────────────────────────────────── │   COM-Box    │ ─────────────────────────────────── │ Інвертор SANDISOLAR  │
 │ (від 1 до 16 блоків паралельно)│ Pin 1: GND, Pin 5: B-, Pin 6: A+   │  (GD32F305)  │ COM-Box: Pin 1: GND, Pin 7: L, 8: H │ (Lithium 00)   │
-└────────────────────────────────┘                                    └──────────────┘ Deye:    Pin 3: GND, Pin 5: L, 4: H └────────────────┘
+└────────────────────────────────┘                                    └──────────────┘ SANDISOLAR:    Pin 3: GND, Pin 5: L, 4: H └────────────────┘
                                                                              │
                                                                       Живлення 15..60 В DC
                                                                       (від клем батареї)
@@ -267,14 +267,14 @@ hr {
 <li>При зниженні найслабшої комірки до 2.90 В струм розряду обмежується на 50% (Soft Warning), а при 2.75 В — розряд повністю блокується (Soft Cut-off із запасом 250 мВ до апаратного вимкнення BMS 2.50 В, що рятує ключі від дугового розриву під навантаженням).</li>
 <li><strong>Температурний нагляд та надійний зимовий захист (&lt; +2 °C)</strong>:</li>
 <li>Якщо температура в акумуляторах опускається нижче +2 °C, заряд негайно блокується для запобігання незворотній металізації та деградації літію.</li>
-<li>Для інверторів Deye в режимі Off-Grid (які можуть ігнорувати ліміт струму CCL=0) шлюз примусово передає статус SOC = 100%, що гарантує негайне розмикання зарядних ключів інвертора. Захист розряду залишається повністю функціональним (до -20 °C).</li>
+<li>Для інверторів SANDISOLAR в режимі Off-Grid (які можуть ігнорувати ліміт струму CCL=0) шлюз примусово передає статус SOC = 100%, що гарантує негайне розмикання зарядних ключів інвертора. Захист розряду залишається повністю функціональним (до -20 °C).</li>
 <li><strong>Автономне вирівнювання (балансування) із захистом від Standby</strong>: шлюз самостійно визначає дисбаланс комірок і проводить делікатні сесії вирівнювання. При досягненні 3.56 В активується режим <strong>Float Hold (52.5 В, 5.0 А на блок)</strong>, а інвертор утримується активним за протоколом Pylontech (прапорці 0x35C 0x88, SOC ≤ 98%), дозволяючи резисторам BMS ефективно усунути розкид без передчасного вимкнення інвертора.</li>
 <li><strong>Абсолютна безпека зв'язку (Fail-Closed)</strong>: у разі обриву кабелю зв'язку з батареями COM-Box через 8 секунд передає на інвертор команду негайного зупинення заряду та розряду (0 А).</li>
 </ol>
 <h3 id="13">1.3. Комплект поставки (Заводська комплектація)</h3>
 <p>Згідно з оригінальним керівництвом виробника та фактичною комплектацією коробки, до комплекту входять:
 1. <strong>BMS COM BOX</strong> — шлюз-конвертер у металевому корпусі з вушками для кріплення на стіну.
-2. <strong>Комплектний кабель зв'язку CAN</strong> — спеціальний заводський крос-кабель для підключення до інвертора Deye з маркуванням <code>BATTERY (P8.7)</code> ──► <code>PCS CAN (P4.5)</code>.
+2. <strong>Комплектний кабель зв'язку CAN</strong> — спеціальний заводський крос-кабель для підключення до інвертора SANDISOLAR з маркуванням <code>BATTERY (P8.7)</code> ──► <code>PCS CAN (P4.5)</code>.
 3. <strong>Комплектний кабель зв'язку RS-485</strong> — спеціальний заводський крос-кабель для інверторів із протоколом RS-485 з маркуванням <code>BATTERY (P6.5)</code> ──► <code>PCS RS485 (P2.1)</code>.
 4. <strong>Power Line</strong> — кабель живлення постійного струму з клемними наконечниками під гвинтовий затискач <code>B+</code>/<code>B-</code>.
 5. <strong>User Guide</strong> — паспорт / інструкція з експлуатації.</p>
@@ -425,13 +425,13 @@ hr {
 </table></div>
 
 <hr/>
-<div class="table-card"><h3 id="22-bms-deye">2.2. Офіційна специфікація та апаратна топологія плати порту BMS інвертора Deye</h3><p>Згідно з офіційним керівництвом з експлуатації та схемотехнічною топологією друкованої плати (PCB роз'єму J1) інверторів Deye, роз'єм <strong>BMS (RJ45)</strong> містить дві незалежні шини:</p><table>
+<div class="table-card"><h3 id="22-bms-sandisolar">2.2. Офіційна специфікація та апаратна топологія плати порту BMS інвертора SANDISOLAR</h3><p>Згідно з офіційним керівництвом з експлуатації та схемотехнічною топологією друкованої плати (PCB роз'єму J1) інверторів SANDISOLAR, роз'єм <strong>BMS (RJ45)</strong> містить дві незалежні шини:</p><table>
 <thead>
 <tr>
-<th style="text-align: center;">Контакт роз'єму BMS Deye</th>
-<th style="text-align: left;">Офіційне маркування Deye</th>
+<th style="text-align: center;">Контакт роз'єму BMS SANDISOLAR</th>
+<th style="text-align: left;">Офіційне маркування SANDISOLAR</th>
 <th style="text-align: left;">Призначення</th>
-<th style="text-align: left;">Топологія друкованої плати інвертора Deye</th>
+<th style="text-align: left;">Топологія друкованої плати інвертора SANDISOLAR</th>
 </tr>
 </thead>
 <tbody>
@@ -457,13 +457,13 @@ hr {
 <td style="text-align: center;"><strong>Pin 4</strong></td>
 <td style="text-align: left;"><strong>CAN-H</strong></td>
 <td style="text-align: left;"><strong>Шина CAN (High)</strong></td>
-<td style="text-align: left;"><strong>Прямий вхід CAN-трансивера Deye</strong> (окрема диференційна пара)</td>
+<td style="text-align: left;"><strong>Прямий вхід CAN-трансивера SANDISOLAR</strong> (окрема диференційна пара)</td>
 </tr>
 <tr>
 <td style="text-align: center;"><strong>Pin 5</strong></td>
 <td style="text-align: left;"><strong>CAN-L</strong></td>
 <td style="text-align: left;"><strong>Шина CAN (Low)</strong></td>
-<td style="text-align: left;"><strong>Прямий вхід CAN-трансивера Deye</strong> (окрема диференційна пара)</td>
+<td style="text-align: left;"><strong>Прямий вхід CAN-трансивера SANDISOLAR</strong> (окрема диференційна пара)</td>
 </tr>
 <tr>
 <td style="text-align: center;"><strong>Pin 6</strong></td>
@@ -490,20 +490,20 @@ hr {
 <hr/>
 <blockquote>
 <h3 id="-1-1">⚠️ КАТАСТРОФІЧНІ НАСЛІДКИ ПІДКЛЮЧЕННЯ ПРЯМОГО ПАТЧ-КОРДУ 1-В-1</h3>
-<p>Погляньте на те, що фізично відбувається на доріжках плати Deye при спробі вставити стандартний прямий кабель:
+<p>Погляньте на те, що фізично відбувається на доріжках плати SANDISOLAR при спробі вставити стандартний прямий кабель:
 1. На роз'ємі <strong>COM-Box (<code>PCS-CAN</code>)</strong>: Pin 1 = GND, Pin 7 = CAN-L, Pin 8 = CAN-H.
-2. При прямому кабелі <strong>Pin 8 COM-Box (CAN-H)</strong> потрапляє на <strong>Pin 8 Deye</strong> (<code>BMS-485_B</code>).
-3. Одночасно <strong>Pin 1 COM-Box (GND)</strong> потрапляє на <strong>Pin 1 Deye</strong> (<code>BMS-485_B</code>).
-4. <strong>Оскільки Pin 1 та Pin 8 на платі Deye замкнені спільною червоною мідною доріжкою — вихід CAN-H коробки наглухо замикається накоротко на землю GND через плату інвертора!</strong>
+2. При прямому кабелі <strong>Pin 8 COM-Box (CAN-H)</strong> потрапляє на <strong>Pin 8 SANDISOLAR</strong> (<code>BMS-485_B</code>).
+3. Одночасно <strong>Pin 1 COM-Box (GND)</strong> потрапляє на <strong>Pin 1 SANDISOLAR</strong> (<code>BMS-485_B</code>).
+4. <strong>Оскільки Pin 1 та Pin 8 на платі SANDISOLAR замкнені спільною червоною мідною доріжкою — вихід CAN-H коробки наглухо замикається накоротко на землю GND через плату інвертора!</strong>
 5. Вихід <strong>CAN-L (Pin 7)</strong> коробки сідає на лінію RS485_A (Pin 7/2) інвертора.
-6. Справжні входи CAN інвертора Deye (<strong>Pin 4 CAN-H</strong> та <strong>Pin 5 CAN-L</strong>) залишаються <strong>абсолютно порожніми</strong>!</p>
-<p>У результаті інвертор Deye не отримує жодного байта і миттєво сигналізує аварію <strong><code>F20 BMS Comm Fault</code></strong>, а вихідний каскад CAN-трансивера перебуває в режимі короткого замикання.</p>
-<p><strong>Висновок: Прямий кабель між COM-Box та Deye суворо заборонений! Використовується виключно спеціальний крос-кабель!</strong></p>
+6. Справжні входи CAN інвертора SANDISOLAR (<strong>Pin 4 CAN-H</strong> та <strong>Pin 5 CAN-L</strong>) залишаються <strong>абсолютно порожніми</strong>!</p>
+<p>У результаті інвертор SANDISOLAR не отримує жодного байта і миттєво сигналізує аварію <strong><code>F20 BMS Comm Fault</code></strong>, а вихідний каскад CAN-трансивера перебуває в режимі короткого замикання.</p>
+<p><strong>Висновок: Прямий кабель між COM-Box та SANDISOLAR суворо заборонений! Використовується виключно спеціальний крос-кабель!</strong></p>
 </blockquote>
 <hr/>
 <h3 id="23">2.3. Комплектні заводські кабелі та схеми підключення</h3>
 <p>У коробці COM-Box у комплекті постачаються <strong>два спеціальні заводські інтерфейсні кабелі</strong> з індивідуальним маркуванням на білих термозбіжних трубках:
-1. <strong>Кабель CAN (500 кбіт/с)</strong> — для зв'язку між COM-Box та інвертором Deye.
+1. <strong>Кабель CAN (500 кбіт/с)</strong> — для зв'язку між COM-Box та інвертором SANDISOLAR.
 2. <strong>Кабель RS-485 (9600 бод)</strong> — для опитування акумуляторів Vision V-LFP48100 коробкою COM-Box.</p>
 <blockquote>
 <p>⚠️ <strong>КРИТИЧНО ВАЖЛИВЕ ПРАВИЛО: НЕ ЗВЕРТАЙТЕ УВАГУ НА НАПИСИ «BATTERY» ЧИ «PCS»!</strong></p>
@@ -512,17 +512,17 @@ hr {
 Ці кабелі працюють тільки тоді, коли кожна сторона ввімкнена у свій відповідний роз'єм правильним кінцем.</p>
 </blockquote>
 <hr/>
-<div class="table-card"><h4 id="1-can-com-box-deye">🔌 Кабель 1: Комплектний крос-кабель CAN (COM-Box ↔ Інвертор Deye)</h4><p>Це спеціальний готовий кабель для передачі телеметрії та лімітів за протоколом Pylontech CAN (500 кбіт/с) між портом <code>PCS-CAN</code> коробки COM-Box та портом <code>BMS</code> інвертора Deye:</p><table>
+<div class="table-card"><h4 id="1-can-com-box-sandisolar">🔌 Кабель 1: Комплектний крос-кабель CAN (COM-Box ↔ Інвертор SANDISOLAR)</h4><p>Це спеціальний готовий кабель для передачі телеметрії та лімітів за протоколом Pylontech CAN (500 кбіт/с) між портом <code>PCS-CAN</code> коробки COM-Box та портом <code>BMS</code> інвертора SANDISOLAR:</p><table>
 <thead>
 <tr>
 <th style="text-align: center;">Загальний вигляд кабелю CAN</th>
 <th style="text-align: center;">Штекер COM-Box <code>(P8.7)</code></th>
-<th style="text-align: center;">Штекер Deye <code>(P4.5)</code></th>
+<th style="text-align: center;">Штекер SANDISOLAR <code>(P4.5)</code></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: center;"><img alt="Кабель CAN Deye" src="docs/images/cable_can_deye_labels.jpg"/></td>
+<td style="text-align: center;"><img alt="Кабель CAN SANDISOLAR" src="docs/images/cable_can_deye_labels.jpg"/></td>
 <td style="text-align: center;"><img alt="Роз'єм P8.7" src="docs/images/cable_can_deye_p87.jpg"/></td>
 <td style="text-align: center;"><img alt="Роз'єм P4.5" src="docs/images/cable_can_deye_p45.jpg"/></td>
 </tr>
@@ -539,17 +539,17 @@ hr {
 <thead>
 <tr>
 <th style="text-align: center;">Штекер <code>(P8.7)</code> увімкнено в COM-Box (<code>PCS-CAN</code>)</th>
-<th style="text-align: center;">Штекер <code>(P4.5)</code> увімкнено в інвертор Deye (<code>BMS</code>)</th>
+<th style="text-align: center;">Штекер <code>(P4.5)</code> увімкнено в інвертор SANDISOLAR (<code>BMS</code>)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: center;"><img alt="COM-Box PCS-CAN P8.7" src="docs/images/combox_connected_can_cable.jpg"/></td>
-<td style="text-align: center;"><img alt="Deye BMS P4.5" src="docs/images/deye_connected_cable.jpg"/></td>
+<td style="text-align: center;"><img alt="SANDISOLAR BMS P4.5" src="docs/images/deye_connected_cable.jpg"/></td>
 </tr>
 <tr>
 <td style="text-align: center;">➡️ <strong>Порт <code>PCS-CAN</code> (COM-Box)</strong></td>
-<td style="text-align: center;">➡️ <strong>Порт <code>BMS</code> (Інвертор Deye)</strong></td>
+<td style="text-align: center;">➡️ <strong>Порт <code>BMS</code> (Інвертор SANDISOLAR)</strong></td>
 </tr>
 </tbody>
 </table></div>
@@ -573,8 +573,8 @@ hr {
 <tr>
 <td style="text-align: left;"><strong><code>PCS CAN (P4.5)</code></strong></td>
 <td style="text-align: center;"><strong>Pin 4, Pin 5</strong></td>
-<td style="text-align: left;">➡️ <strong>Інвертор Deye (порт <code>BMS</code>)</strong></td>
-<td style="text-align: left;"><strong>Pin 4</strong> = CAN-H, <strong>Pin 5</strong> = CAN-L інвертора Deye</td>
+<td style="text-align: left;">➡️ <strong>Інвертор SANDISOLAR (порт <code>BMS</code>)</strong></td>
+<td style="text-align: left;"><strong>Pin 4</strong> = CAN-H, <strong>Pin 5</strong> = CAN-L інвертора SANDISOLAR</td>
 </tr>
 </tbody>
 </table></div>
@@ -582,7 +582,7 @@ hr {
 <ul>
 <li><strong>Чому це працює:</strong> Кабель забезпечує прямий зв'язок CAN-H (8 ──► 4) та CAN-L (7 ──► 5).</li>
 <li><strong>Увага:</strong> Не вмикайте кінець <code>BATTERY (P8.7)</code> в акумулятор Vision! У Vision на пінах 7 і 8 CAN відсутній.</li>
-<li><strong>Якщо переплутати сторони місцями:</strong> COM-Box не отримає сигналу на пінах 8/7, а Deye отримає сигнал на пінах RS-485 замість CAN. Інвертор видасть помилку <strong><code>F20 BMS Comm Fault</code></strong>.</li>
+<li><strong>Якщо переплутати сторони місцями:</strong> COM-Box не отримає сигналу на пінах 8/7, а SANDISOLAR отримає сигнал на пінах RS-485 замість CAN. Інвертор видасть помилку <strong><code>F20 BMS Comm Fault</code></strong>.</li>
 </ul>
 <hr/>
 <div class="table-card"><h4 id="2-rs-485-com-box-vision-v-lfp48100">🔌 Кабель 2: Комплектний крос-кабель RS-485 (COM-Box ↔ Акумулятор Vision V-LFP48100)</h4><p>Це штатний комплектний кабель для опитування акумуляторів Vision V-LFP48100 по шині RS-485 (Modbus RTU, 9600 бод):</p><table>
@@ -815,7 +815,7 @@ hr {
 * <strong>«Master BMS» у таблиці виробника Vision</strong> = адреса <strong><code>0x10</code> (16)</strong> — стан, коли <strong>усі 4 важелі ID опущені ВНИЗ</strong> (<code>0+0+0+0 = 0</code>, BMS додає 0x10). Це інший, виробничий, термін.
 * <strong>Усі 4 важелі ВГОРУ = ID 15 = <code>0x0F</code></strong> (живо перевірено 21.10.2026: АКБ на <code>0x0F</code> відповідає, <code>med ≈ 101 мс</code>, 0 помилок).
 * Слова <code>ON</code>/<code>OFF</code> у таблиці DIP виробника інвертовані за фізичними важелями: приклад №2 «ON ON OFF ON» фізично = <code>[ Вниз, Вниз, ВГОРУ, Вниз ]</code> = <code>0x02</code>.
-* Відповідають адреси <code>0x01</code>–<code>0x0F</code>; на <code>0x10</code> у живому ланцюзі (21–22.10) АКБ не відповідали — в АКБ не було конфігурації «усі ВНИЗ». Деталі: <code>DEYE_CAN_RS485_BASE.md</code>, розділ «Додано 22.10.2026».</p>
+* Відповідають адреси <code>0x01</code>–<code>0x0F</code>; на <code>0x10</code> у живому ланцюзі (21–22.10) АКБ не відповідали — в АКБ не було конфігурації «усі ВНИЗ». Деталі: <code>PORT_MAPPING.md</code>, розділ «Додано 22.10.2026».</p>
 </blockquote>
 <hr/>
 <h2 id="4-dip-com-box" style="break-before: page; page-break-before: always;">4. Налаштування DIP-перемикачів на COM-Box</h2>
@@ -843,37 +843,37 @@ hr {
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>DIP 1</strong></td>
-<td style="text-align: left;"><strong>Цільова напруга заряду (Профіль)</strong></td>
-<td style="text-align: left;"><strong>100% заряду (54.0 В)</strong><br/>Стандартний режим (типово)</td>
-<td style="text-align: left;"><strong>90% заряду (51.8 В)</strong><br/>Ощадливий режим, тривалий ресурс LiFePO4 з адаптивним авто-балансуванням (Float Hold 52.5 В)</td>
-<td style="text-align: center;"><strong><code>OFF</code></strong> (або <code>ON</code> для 90%)</td>
+<td style="text-align: left;"><strong>Буферний профіль напруги (Float)</strong></td>
+<td style="text-align: left;"><strong>54.0 В</strong> (якщо <code>DIP2=OFF</code>)</td>
+<td style="text-align: left;"><strong>51.0 В</strong> (<code>3.400 В/ком.</code>, буферний/ощадливий режим, якщо <code>DIP2=OFF</code>)</td>
+<td style="text-align: center;"><strong><code>OFF</code></strong> (або <code>ON</code> для 51.0 В)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>DIP 2</strong></td>
-<td style="text-align: left;"><strong>Режим діагностичного порту <code>PCS-485</code></strong></td>
-<td style="text-align: left;"><strong>Пасивне дзеркало</strong><br/>Трансляція даних батареї для ПК/моніторингу</td>
-<td style="text-align: left;"><strong>Прозорий міст</strong><br/>⚠️ Лабораторний режим досліджень</td>
-<td style="text-align: center;"><strong><code>OFF</code></strong> (Суворо <code>OFF</code>!)</td>
+<td style="text-align: left;"><strong>Профіль Victron/Pylontech 53.2 В</strong></td>
+<td style="text-align: left;">Вибір за <strong>DIP 1</strong> (<code>54.0 В</code> або <code>51.0 В</code>)</td>
+<td style="text-align: left;"><strong>53.2 В</strong> (<code>3.546 В/ком.</code>, має пріоритет над <code>DIP 1</code>)</td>
+<td style="text-align: center;"><strong><code>ON</code></strong> (53.2 В) або <code>OFF</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>DIP 3</strong></td>
-<td style="text-align: left;"><strong>Режим опитування батарей (Polling Mode)</strong></td>
-<td style="text-align: left;"><strong>Розумний Plug &amp; Play автопошук</strong><br/>⚡ Швидкісне опитування лише активних АКБ (800 мс для 2 блоків, старт за 1.2 с)</td>
-<td style="text-align: left;"><strong>Сервісний оверрайд (Force Full Scan)</strong><br/>⚠️ Примусове повне сканування всіх 16 адрес (цикл ~6.4 с)</td>
-<td style="text-align: center;"><strong><code>OFF</code></strong> (типово, рекомендовано)</td>
+<td style="text-align: left;"><strong>Режим діагностичного порту <code>PCS-485</code></strong></td>
+<td style="text-align: left;"><strong>Пасивне дзеркало (Mirror)</strong><br/>Трансляція даних для ПК/моніторингу (Fast Poll працює завжди)</td>
+<td style="text-align: left;"><strong>Прозорий міст (Pure Bridge)</strong><br/>⚠️ Лабораторний режим досліджень</td>
+<td style="text-align: center;"><strong><code>OFF</code></strong> (Суворо <code>OFF</code>!)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>DIP 4</strong></td>
 <td style="text-align: left;"><strong>Режим обмеження струму заряду</strong></td>
 <td style="text-align: left;"><strong>50 А на блок (Стандарт)</strong><br/>(Повний паспортний струм заряду Vision)</td>
-<td style="text-align: left;"><strong>15 А на блок (Ощадливий режим 0.15C)</strong><br/>(Зниження нагріву проводки в 11 разів, тиша інвертора)</td>
-<td style="text-align: center;"><strong><code>ON</code></strong> (15 А, рекомендовано) або <code>OFF</code></td>
+<td style="text-align: left;"><strong>15 А на блок (Ощадливий режим 0.15C)</strong><br/>(Зниження нагріву проводки, тиша інвертора)</td>
+<td style="text-align: center;"><strong><code>ON</code></strong> (15 А) або <code>OFF</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>DIP 5</strong></td>
-<td style="text-align: left;"><strong>Примусове балансування (Forced Balancing)</strong></td>
-<td style="text-align: left;"><strong>Вимкнено (Автоматичний режим)</strong><br/>Балансування за дельтами напруг та таймерами</td>
-<td style="text-align: left;"><strong>Увімкнено (Примусовий Float Hold 52.5 В)</strong><br/>⚡ Негайний старт сесії, струм 2.0–5.0 А на АКБ, CAN Full Charge, LED1 блимає 1 Гц</td>
+<td style="text-align: left;"><strong>Імпульсне балансування («гойдалка»)</strong></td>
+<td style="text-align: left;"><strong>Вимкнено (Автоматичний режим)</strong><br/>При <code>Standby</code> + <code>BMS SOC=100%</code> передає <code>100%</code> в інвертор</td>
+<td style="text-align: left;"><strong>Увімкнено (Імпульсна «гойдалка»)</strong><br/>⚡ Гойдалка <code>52.2 В ↔ CVL профілю</code> + Wakeup Nudge <code>51.5 В</code>, LED1 1 Гц</td>
 <td style="text-align: center;"><strong><code>OFF</code></strong> (типово)</td>
 </tr>
 </tbody>
@@ -891,7 +891,7 @@ hr {
 <li>При 2 блоках: <code>OFF</code> = 100 А, <code>ON</code> = <strong>30 А</strong> (повернення 54 А·год за 1 год 48 хв).</li>
 <li>При 3 блоках: <code>OFF</code> = 150 А, <code>ON</code> = <strong>45 А</strong>.</li>
 <li>При 4 блоках: <code>OFF</code> = 200 А, <code>ON</code> = <strong>60 А</strong>.</li>
-<li><em>Переваги:</em> Виділення тепла на контактах і клемах зменшується в <strong>11 разів</strong> (за законом Джоуля-Ленца: P = I²·R), а інвертор Deye працює абсолютно безшумно.</li>
+<li><em>Переваги:</em> Виділення тепла на контактах і клемах зменшується в <strong>11 разів</strong> (за законом Джоуля-Ленца: P = I²·R), а інвертор SANDISOLAR працює абсолютно безшумно.</li>
 <li><em>Захист асиметрії банку (Bank Asymmetry Clamp)</em>: якщо хоча б один блок у системі переходить у захист заряду (наприклад, Cell OV 0x0002) і блокує свій зарядний ключ, сумарний струм заряду на всю систему примусово обмежується стелею <strong>5.0 А</strong>, що гарантує захист залишених блоків від струмового удару інвертора.</li>
 <li><strong>DIP 5 = OFF (Штатний автоматичний режим балансування):</strong> Балансування контролюється інтелектуальним алгоритмом COM-Box за графіком та різницею напруг між комірками (автоматичне завершення сесії при досягненні різниці ≤ 35 мВ, що узгоджено з апаратним порогом балансирів BMS 40 мВ).</li>
 <li><strong>DIP 5 = ON (Примусове вирівнювання комірок):</strong> Негайний запуск сесії примусового балансування в обхід звичайних таймерів та кулдаунів. Працює автономно — <strong>не залежить від положення DIP 1 та внутрішнього стану Standby BMS</strong>. Коробка одразу встановлює напругу запиту Float Hold <strong>52.5 В</strong> (3.50 В на комірку) та адаптивно обмежує струм: до 5.0 А на блок зі <strong>стельовим захисним обмеженням сумарного струму не більше 5.0 А на весь банк</strong> (та не більше 2.0 А при комірці ≥ 3.55 В), що повністю виключає концентрацію зарядного струму в один блок при відключенні сусідніх. У кадрі CAN 0x35C активується Bit 3 (<code>Request Full Charge</code>), значення CAN SOC обмежується до 98% (щоб інвертор не «засинав»), а внутрішній світлодіод LED1 рівномірно блимає з частотою 1 Гц. Для повернення в автоматичний режим поверніть важіль у положення <code>OFF</code>.</li>
@@ -933,7 +933,7 @@ hr {
 <td style="text-align: left;"><strong>PCS-CAN Connect</strong></td>
 <td style="text-align: center;">PC5</td>
 <td style="text-align: left;">Ритмічні спалахи 1 раз/с (1 Гц)</td>
-<td style="text-align: left;"><strong>Йде трансляція CAN-телеметрії на інвертор Deye</strong>. Означає успішну генерацію 6 пакетів шини CAN.</td>
+<td style="text-align: left;"><strong>Йде трансляція CAN-телеметрії на інвертор SANDISOLAR</strong>. Означає успішну генерацію 6 пакетів шини CAN.</td>
 </tr>
 <tr>
 <td style="text-align: center;"><strong>Поз. 3</strong></td>
@@ -966,29 +966,32 @@ hr {
   * <strong>4 спалахи:</strong> Сильний дисбаланс комірок (ΔU &gt; 400 мВ) або перекіс напруги між АКБ (ΔU АКБ ≥ 3.0 В).
   * <strong>5 спалахів:</strong> Втрата зв'язку з акумуляторами по RS-485 (таймаут &gt; 8 с).</p>
 <hr/>
-<div class="diagram-card"><h2 id="6-deye" style="break-before: page; page-break-before: always;">6. Налаштування гібридного інвертора Deye</h2><p>Щоб інвертор Deye перейшов під керування COM-Box, виконайте прості налаштування на сенсорному екрані інвертора:</p><pre><code>[Головний екран] ──► [Gear Icon (Налаштування)] ──► [Battery Setting]
-</code></pre></div>
-
-
-<h3 id="61-deye">6.1. Покрокові параметри в меню Deye:</h3>
+<h2 id="6-sandisolar-sd-pro-eu-65k">6. Налаштування інвертора SANDISOLAR (SD-PRO-EU 6.5K)</h2>
+<p>Щоб інвертор SANDISOLAR перейшов під повноцінне керування COM-Box, виконайте налаштування на екрані інвертора згідно з офіційним керівництвом (розділ 7 / сторінка "Batt Set 3"):</p>
+<pre><code>[Головний екран] ──► [Налаштування (Settings)] ──► [Battery Setup] ──► [Batt Set 3]
+</code></pre>
+<h3 id="61-sandisolar">6.1. Покрокові параметри в меню SANDISOLAR:</h3>
 <ol>
-<li>Вкладка <strong>Battery Setting</strong>:</li>
-<li>Оберіть тип акумулятора: <strong><code>Lithium</code></strong>.</li>
-<li>У полі протоколу встановіть номер: <strong><code>00</code></strong> (це стандартний канонічний режим Pylontech CAN v2.0.6 на швидкості 500 кбіт/с).</li>
-<li>Параметри ємності:</li>
-<li><strong>Battery Capacity</strong>: вкажіть реальну сумарну ємність банку (наприклад, <strong><code>100 Ah</code></strong> для 1 блоку, <strong><code>200 Ah</code></strong> для 2 блоків, <strong><code>300 Ah</code></strong> для 3 блоків тощо).</li>
-<li>Ліміти струмів:</li>
-<li><strong>Max A Charge / Max A Discharge</strong>: інвертор автоматично отримає точні та безпечні ліміти струмів від COM-Box по шині CAN. Однак у меню інвертора рекомендується виставити значення, що відповідають вашому банку (наприклад, 30–50 А на кожен блок), як резервний апаратний бар'єр.</li>
+<li><strong>Battery Mode (Тип батареї):</strong></li>
+<li>Оберіть режим: <strong><code>Lithium</code></strong>.</li>
+<li><strong>Код протоколу BMS:</strong></li>
+<li>Встановіть код: <strong><code>0</code></strong> (або <code>1</code> / <code>2</code> залежно від моделі — стандартний Pylontech CAN v2.0.6 на швидкості 500 кбіт/с).</li>
+<li><strong>Параметри автономної роботи (Shutdown / Low Batt / Restart):</strong></li>
+<li><strong>Shutdown (Вимкнення):</strong> рівень SOC (за замовчуванням <code>10%</code>), при досягненні якого інвертор припиняє розряд і залишає живлення лише на заряд від сонця.</li>
+<li><strong>Low Batt (Низький заряд):</strong> рівень підтримки від мережі Grid Charge (за замовчуванням <code>20%</code>).</li>
+<li><strong>Restart (Перезапуск):</strong> рівень відновлення видачі 220 В після розряду (за замовчуванням <code>40%</code>).</li>
+<li><strong>BMS Err Stop:</strong></li>
+<li>Рекомендується ввімкнути захист зупинки при втраті зв'язку з BMS для безпеки LiFePO4 банку.</li>
 </ol>
 <h3 id="62">6.2. Як переконатися, що зв'язок встановлено успішно:</h3>
 <ul>
-<li>На головному екрані інвертора піктограма акумулятора повинна стати активною (відображається точний відсоток заряду <strong>SOC %</strong>, наприклад 85%).</li>
-<li>Зникне попередження або код помилки <strong><code>F20</code></strong> (на 1-фазних інверторах LP1) чи <strong><code>F58</code></strong> (на 3-фазних інверторах LP3) — BMS Communication Fault.</li>
-<li>Перейшовши на сторінку інформації про батарею (екран телеметрії Li-BMS в інверторі), ви побачите:</li>
-<li>Загальну напругу банку (В).</li>
-<li>Реальний струм (А). <em>Зверніть увагу: за стандартом Deye струм заряду відображається з мінусом, а струм розряду — з плюсом.</em></li>
-<li>Температуру найгарячішої точки.</li>
-<li>Дозволені ліміти максимального струму заряду (Charging Current Limit) та розряду.</li>
+<li>На головному екрані інвертора відображається точний відсоток заряду <strong>SOC %</strong>, отриманий від COM-Box.</li>
+<li>Зникне попередження про відсутність зв'язку (помилка зв'язку BMS / BMS Comm Fault).</li>
+<li>На сторінці телеметрії BMS інвертора відображаються реальні параметри банку:</li>
+<li>Загальна напруга банку (В).</li>
+<li>Реальний струм заряду/розряду (А).</li>
+<li>Максимальна температура комірок банку (°C).</li>
+<li>Динамічні ліміти заряду (CCL) та розряду (DCL), які розраховує COM-Box.</li>
 </ul>
 <hr/>
 <h2 id="7-">7. Режими експлуатації, безпека та авто-балансування</h2>
@@ -1003,7 +1006,7 @@ Com-Box безперервно відстежує стан кожної комі
 4. <strong>Режим утримання напруги (Float Hold) та захист від передчасного Standby інвертора і BMS:</strong>
    * Коли максимальна комірка сягає <strong>3.56 В</strong>, напруга запиту CVL підтримується на рівні <strong>52.5 В</strong> (3.50 В/комірку — забезпечує достатній потенціал для протікання вирівнювального струму на пасивні балансири BMS), а струм адаптивно лімітується на рівні <strong>5.0 А / 2.0 А на блок</strong> (5.0 А/блок при U_max &lt; 3.55 В та плавне зниження до <strong>2.0 А/блок</strong> при U_max ≥ 3.55 В зі стельовим обмеженням сумарного струму всього банку не більше 5.0 А).
    * <strong>Активне запобігання переходу BMS у Standby:</strong> Під час балансування COM-Box періодично (кожні ~3 с) надсилає на активні акумулятори по шині RS-485 команду керування ключами <code>FC06</code> (регістр <code>0x002A</code> = <code>0x0001</code> <em>Charge MOSFET Enable</em>). Це утримує силові ключі відкритими та не дає контролеру BMS заснути.
-   * У кадрі <code>0x35C</code> виставляються біти <code>0x88</code> (Bit 7 <strong>Charge Enable</strong> + Bit 3 <strong>Request Full Charge</strong> за Pylontech v1.2+), що зобов'язує інвертор Deye не вимикати перетворювач.
+   * У кадрі <code>0x35C</code> виставляються біти <code>0x88</code> (Bit 7 <strong>Charge Enable</strong> + Bit 3 <strong>Request Full Charge</strong> за Pylontech v1.2+), що зобов'язує інвертор SANDISOLAR не вимикати перетворювач.
    * У кадрі <code>0x355</code> значення SOC штучно обмежується на рівні <strong>98%</strong>, запобігаючи переходу інвертора в Standby за ознакою «100% заряду».
    * Напруга на комірках стабільно утримується в активній зоні балансування (&gt; 3.40 В), даючи пасивним балансирам BMS 3–6 годин на безпечне зливання надлишку енергії. Аварійний захист від перенапруги (0 А) відсунуто до безпечних <strong>3.62 В</strong>.
 5. <strong>Успішне завершення:</strong> Коли розкид комірок падає до <strong>≤ 35 мВ</strong> (утримується 3 цикли поспіль, що відповідає апаратному компаратору BMS 40 мВ), баланс-сесія завершується — інвертору дозволяється прийняти 100% SOC, а система продовжує стандартний режим 54.0 В. Внутрішній LED1 гасне. При відсутності прогресу (90 хв) або таймауті (8 год) призначається 12-годинний захисний кулдаун для охолодження резисторів BMS перед наступною спробою.</p>
@@ -1027,7 +1030,7 @@ Com-Box безперервно відстежує стан кожної комі
 <ul>
 <li><strong>Пасивний Dynamic CCL та DCL (Захист від перевантаження 1C та збереження живлення квартири):</strong>
   Якщо в одному з блоків паралельного банку спрацював захист або ключ заряду відключився (фізичний перезаряд комірки ≥ 3.60 В чи температурний бар'єр), зарядний струм через такий блок падає до 0 А. Щоб весь зарядний струм інвертора (наприклад, 60..100 А) не пішов в один єдиний справний блок струмом 1C замість безпечних 0.5C, COM-Box динамічно виключає такий блок з розрахунку і масштабує <code>charge_current_limit</code> лише на кількість реально спроможних приймати заряд блоків. Крім того, при підтвердженому вході будь-якого блоку в стан захисту заряду (Protect / Cell OV) спрацьовує <strong>Bank Asymmetry Current Clamp</strong> з 3-тактовим дебаунсом (3 sweeps, ~2.5 с), що обмежує сумарний струм заряду банку стелею <strong>5.0 А</strong>. Для усунення комутаційного нагріву ключів BMS та захисту вхідних конденсаторів і дроселів інвертора зміна лімітів здійснюється через <strong>Slew Rate Limiter</strong> (плавний спад до 5.0 А/с та плавний підйом до 2.5 А/с; фатальні аварії відсікаються миттєво в 0 А). Якщо з 2 блоків зарядний ключ замкнено лише в одного — у штатному режимі ліміт автоматично обмежується до <strong>50 А</strong> (<code>DIP 4 = OFF</code>) або <strong>15 А</strong> (<code>DIP 4 = ON</code>), а при наявності захисту заряду на сусідньому блоці — до <strong>5.0 А</strong>. Якщо всі блоки заблокували заряд — ліміт стає суворо 0 А (Fail-Closed).
-  Аналогічно для розряду: якщо один блок розрядився або відключився, розрядний ліміт <code>DCL</code> масштабується на кількість робочих блоків (наприклад, 50 А замість 100 А). Перезаряд окремої комірки або спрацьовування захисту заряду на одному блоці передається в CAN <code>0x359</code> як <strong>Warning/Alarm</strong>, а не фатальний Protect всієї батареї. Завдяки цьому інвертор Deye припиняє заряджання батареї, але <strong>НЕ скидає резервне живлення EPS квартири під час відключень світла</strong>.</li>
+  Аналогічно для розряду: якщо один блок розрядився або відключився, розрядний ліміт <code>DCL</code> масштабується на кількість робочих блоків (наприклад, 50 А замість 100 А). Перезаряд окремої комірки або спрацьовування захисту заряду на одному блоці передається в CAN <code>0x359</code> як <strong>Warning/Alarm</strong>, а не фатальний Protect всієї батареї. Завдяки цьому інвертор SANDISOLAR припиняє заряджання батареї, але <strong>НЕ скидає резервне живлення EPS квартири під час відключень світла</strong>.</li>
 </ul>
 <blockquote>
 <p>💡 <strong>Чому не слід лякатися статусу Protect на акумуляторі (Штатне авто-балансування у захисті):</strong><br>
@@ -1036,7 +1039,7 @@ Com-Box безперервно відстежує стан кожної комі
 <ul>
 <li><strong>Превентивний захист від перерозряду (випередження апаратного розриву BMS):</strong></li>
 <li><strong>Рівень 1 (Soft Warning):</strong> Якщо будь-яка комірка просідає до <strong>≤ 2.90 В</strong> — струм розряду обмежується на 50% (<code>DCL /= 2</code>) для зняття просідання, а в CAN-кадрі <code>0x359</code> (байт 2) виставляється попереджувальний біт Cell UV.</li>
-<li><strong>Рівень 2 (Soft Cut-off):</strong> Якщо будь-яка комірка падає до <strong>≤ 2.75 В</strong> — струм розряду обнуляється (<code>DCL = 0</code>), прапорець <code>Discharge Enable</code> у <code>0x35C</code> скидається в 0, а в <code>0x359</code> (байт 0) активується аварійний біт Cell UV Protect. Інвертор Deye плавно зупиняє генерацію по шині CAN, зберігаючи буфер <strong>250 мВ</strong> до апаратного захисту BMS (2.50 В) та рятуючи силові MOSFET-ключі від дугового розриву під навантаженням 50–100 А.</li>
+<li><strong>Рівень 2 (Soft Cut-off):</strong> Якщо будь-яка комірка падає до <strong>≤ 2.75 В</strong> — струм розряду обнуляється (<code>DCL = 0</code>), прапорець <code>Discharge Enable</code> у <code>0x35C</code> скидається в 0, а в <code>0x359</code> (байт 0) активується аварійний біт Cell UV Protect. Інвертор SANDISOLAR плавно зупиняє генерацію по шині CAN, зберігаючи буфер <strong>250 мВ</strong> до апаратного захисту BMS (2.50 В) та рятуючи силові MOSFET-ключі від дугового розриву під навантаженням 50–100 А.</li>
 <li><strong>Відновлення (Release):</strong> Дозвіл на розряд відновлюється автоматично лише після початку заряду, коли напруга комірок підніметься до <strong>≥ 3.00 В</strong> (відповідає заводському параметру <code>Cell UV Release</code> BMS).</li>
 <li><strong>Захист від перекосу комірок та різниці напруг між АКБ:</strong></li>
 <li>При внутрішньому розкиді комірок понад <strong>400 мВ</strong> струм розряду автоматично дротелюється вдвічі (<code>DCL /= 2</code>).</li>
@@ -1069,9 +1072,9 @@ COM-Box повністю усуває цю проблему за допомог�
 * <strong>Smart Coulomb Fallback</strong>: якщо кулонометр BMS працює коректно (не завис на 100% при напрузі &lt; 53.0 В), шлюз використовує заводський лічильник. Якщо виявлено дефект зависання — шлюз безшовно перемикається на адаптивну модель.
 * <strong>Tail Current Anchor (Якір 100%)</strong>: перехід у 100% дозволено виключно при одночасному досягненні напруги банку ≥ 53.5 В, пікової комірки ≥ 3.55 В та струму згасання |I| &lt; 1.0 А.
 * <strong>Rate Limiter (Плавність)</strong>: швидкість зміни SOC обмежена кроком не більше 1% за секунду, що повністю усуває стрибки відсотків на дисплеї інвертора під час увімкнення потужних побутових приладів.
-* <strong>Поведінка при зимовому блокуванні (&lt; +2 °C)</strong>: якщо температура будь-якого модуля падає нижче +2.0 °C, заряд суворо блокується (<code>CCL = 0 А</code>), а в кадрі <code>0x355</code> <strong>форсується <code>SOC = 100%</code></strong>. Це критично важливий захист: інвертори Deye в автономному режимі (Off-Grid) можуть ігнорувати числовий ліміт струму <code>CCL = 0</code>, і лише відсоток 100% гарантує повне вимкнення заряду холодної батареї. При цьому розряд для живлення будинку залишається повністю активним.
+* <strong>Поведінка при зимовому блокуванні (&lt; +2 °C)</strong>: якщо температура будь-якого модуля падає нижче +2.0 °C, заряд суворо блокується (<code>CCL = 0 А</code>), а в кадрі <code>0x355</code> <strong>форсується <code>SOC = 100%</code></strong>. Це критично важливий захист: інвертори SANDISOLAR в автономному режимі (Off-Grid) можуть ігнорувати числовий ліміт струму <code>CCL = 0</code>, і лише відсоток 100% гарантує повне вимкнення заряду холодної батареї. При цьому розряд для живлення будинку залишається повністю активним.
 * <strong>Чесний SOH (Здоров'я)</strong>: шлюз транслює в інвертор справжній заводський стан здоров'я батареї з регістру 0023 BMS (байти <code>[49..50]</code>).
-* Інвертор Deye завжди бачить чесний, актуальний залишок енергії, що унеможливлює раптове вимкнення інвертора по аварії батареї.</p>
+* Інвертор SANDISOLAR завжди бачить чесний, актуальний залишок енергії, що унеможливлює раптове вимкнення інвертора по аварії батареї.</p>
 <hr/>
 <h2 id="8-dip-11" style="break-before: page; page-break-before: always;">8. Практичні рекомендації щодо вибору комбінацій DIP-перемикачів при графіках відключень (Приклад: 11 год відключень / доба)</h2>
 <p>Цей розділ створено як практичний інженерний посібник для власників COM-Box при типових графіках аварійних або погодинних відключень електроенергії (сумарно 11 годин відключень на добу двома чергами: 6 годин вранці та 5 годин увечері).</p>
@@ -1096,7 +1099,7 @@ COM-Box повністю усуває цю проблему за допомог�
 <li><strong>Балансування:</strong> Якщо виникає розбіг комірок ΔU ≥ 40 мВ, автоматика COM-Box <strong>вночі після 23:30</strong> сама активує сесію Float Hold <strong>52.5 В</strong> (по 3.50 В/комірку) зі струмом до 2..5 А на банк, ідеально вирівнює комірки до ≤ 35 мВ і повертає напругу на 51.8 В.</li>
 <li><strong>Переваги:</strong></li>
 <li>Теплове навантаження на кабелі, наконечники та клеми зменшено в <strong>11 разів</strong> (P = I²·R).</li>
-<li>Інвертор Deye працює абсолютно безшумно (~1.5 кВт заряду).</li>
+<li>Інвертор SANDISOLAR працює абсолютно безшумно (~1.5 кВт заряду).</li>
 <li>Хімія LiFePO4 ніколи не відчуває стресу напруг &gt; 3.45 В (ресурс батарей понад 5000 циклів).</li>
 </ul></div>
 
@@ -1197,7 +1200,7 @@ COM-Box повністю усуває цю проблему за допомог�
 
 <hr/>
 <div class="diagram-card"><h2 id="9-" style="break-before: page; page-break-before: always;">9. Покроковий чек-лист першого запуску</h2><p>Виконуйте монтаж та перший запуск суворо за наступними кроками:</p><pre><code>Крок 1 ──► Крок 2 ──► Крок 3 ──► Крок 4 ──► Крок 5 ──► Крок 6 ──► Крок 7
-Кабелі     Адреси     DIP-Box    Живлення   BMS LED    CAN до Deye Екран Deye
+Кабелі     Адреси     DIP-Box    Живлення   BMS LED    CAN до SANDISOLAR Екран SANDISOLAR
 </code></pre></div>
 
 
@@ -1207,8 +1210,8 @@ COM-Box повністю усуває цю проблему за допомог�
 <li>[ ] <strong>Крок 3. Налаштування COM-Box:</strong> Встановіть перемикачі на коробці: <strong>DIP 1 = OFF</strong> (54 В, стандарт) або <code>ON</code> (51.8 В, 90%), <strong>DIP 2 = OFF</strong> (дзеркало), <strong>DIP 3 = OFF</strong> (швидке опитування активних блоків, рекомендовано) або <code>ON</code> (повне сканування 16 адрес), <strong>DIP 4 = OFF</strong> (50 А на блок) або <code>ON</code> (15 А на блок, ощадливе обмеження), <strong>DIP 5 = OFF</strong> (штатний авто-режим) або <code>ON</code> (примусове вирівнювання).</li>
 <li>[ ] <strong>Крок 4. Подача живлення:</strong> Увімкніть автомати постійного струму на акумуляторах. Підключіть живлення до клем <code>B+</code> та <code>B-</code> коробки. Переконайтеся, що світлодіоди <strong>LED2 (VDDA на платі)</strong> та <strong>Поз. 4 / LED5 (Running)</strong> стабільно світяться зеленим.</li>
 <li>[ ] <strong>Крок 5. Перевірка зв'язку з батареями:</strong> Підключіть кабель <code>BMS-485</code> до першого блоку. Протягом кількох секунд світлодіод <strong>Поз. 3 / LED6 (BMS-485)</strong> повинен почати ритмічно спалахувати (запити блоків).</li>
-<li>[ ] <strong>Крок 6. Підключення до інвертора:</strong> Підключіть <strong>спеціальний крос-кабель CAN</strong> (сторона COM-Box: піни 8, 7, 1 ──► сторона Deye: піни 4, 5, 3) до гнізда <code>BMS</code> інвертора Deye (Pin 3 = BMS-GND; піни 1, 2, 6, 7, 8 з боку Deye не підключати!). Переконайтеся, що світлодіод <strong>Поз. 2 / LED4 (PCS-CAN)</strong> на COM-Box рівномірно блимає з частотою 1 Гц (раз на секунду).</li>
-<li>[ ] <strong>Крок 7. Активація на інверторі:</strong> У меню інвертора оберіть <code>Lithium Mode 00</code>. Перевірте, що на екрані з'явився коректний відсоток SOC, напруга та зникла помилка F20 (або F58 на трифазних моделях). Систему успішно введено в роботу!</li>
+<li>[ ] <strong>Крок 6. Підключення до інвертора:</strong> Підключіть <strong>спеціальний крос-кабель CAN</strong> (сторона COM-Box: піни 8, 7, 1 ──► сторона SANDISOLAR: піни 4, 5, 3) до гнізда <code>BMS</code> інвертора SANDISOLAR (Pin 3 = BMS-GND; піни 1, 2, 6, 7, 8 з боку SANDISOLAR не підключати!). Переконайтеся, що світлодіод <strong>Поз. 2 / LED4 (PCS-CAN)</strong> на COM-Box рівномірно блимає з частотою 1 Гц (раз на секунду).</li>
+<li>[ ] <strong>Крок 7. Активація на інверторі:</strong> У меню інвертора оберіть <code>BMS CAN / PYLON0</code>. Перевірте, що на екрані з'явився коректний відсоток SOC, напруга та зникла помилка F20 (або F58 на трифазних моделях). Систему успішно введено в роботу!</li>
 </ul>
 <hr/>
 <div class="table-card"><h2 id="10-troubleshooting" style="break-before: page; page-break-before: always;">10. Пошук та усунення несправностей (Troubleshooting)</h2><table>
@@ -1222,8 +1225,8 @@ COM-Box повністю усуває цю проблему за допомог�
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>На інверторі помилка <code>F20</code> (або <code>F58</code> на трифазних) — втрата зв'язку з BMS</strong></td>
-<td style="text-align: left;">1. <strong>Використано прямий кабель замість крос-кабелю:</strong> в інверторі Deye піни 1, 2 запаралелені з 7, 8 під RS-485, а шина CAN очікується на пінах 4 і 5!<br/>2. Переплутані піни CAN-H / CAN-L або обрив GND.<br/>3. Немає обміну з батареями (COM-Box перейшов у fail-closed).</td>
-<td style="text-align: left;">1. <strong>Терміново перевірте крос-кабель CAN:</strong> вилка COM-Box пін 8 (коричневий) ──► вилка Deye пін 4 (CAN-H); вилка COM-Box пін 7 (біло-коричневий) ──► вилка Deye пін 5 (CAN-L); вилка COM-Box пін 1 (біло-помаранчевий) ──► вилка Deye пін 3 (BMS-GND_485). Піни 1, 2, 7, 8 з боку Deye повинні бути порожніми!<br/>2. Перевірте блимання діода <strong>Поз. 2 / LED4 (PCS-CAN Connect)</strong> на COM-Box (повинен спалахувати раз на секунду).<br/>3. Перевірте, чи блимає <strong>Поз. 3 / LED6 (BMS-485 Connect)</strong>: якщо коробка не бачить батарею більше 8 с, вона навмисно зупиняє CAN-зв'язок для захисту акумуляторів.</td>
+<td style="text-align: left;">1. <strong>Використано прямий кабель замість крос-кабелю:</strong> в інверторі SANDISOLAR піни 1, 2 запаралелені з 7, 8 під RS-485, а шина CAN очікується на пінах 4 і 5!<br/>2. Переплутані піни CAN-H / CAN-L або обрив GND.<br/>3. Немає обміну з батареями (COM-Box перейшов у fail-closed).</td>
+<td style="text-align: left;">1. <strong>Терміново перевірте крос-кабель CAN:</strong> вилка COM-Box пін 8 (коричневий) ──► вилка SANDISOLAR пін 4 (CAN-H); вилка COM-Box пін 7 (біло-коричневий) ──► вилка SANDISOLAR пін 5 (CAN-L); вилка COM-Box пін 1 (біло-помаранчевий) ──► вилка SANDISOLAR пін 3 (BMS-GND_485). Піни 1, 2, 7, 8 з боку SANDISOLAR повинні бути порожніми!<br/>2. Перевірте блимання діода <strong>Поз. 2 / LED4 (PCS-CAN Connect)</strong> на COM-Box (повинен спалахувати раз на секунду).<br/>3. Перевірте, чи блимає <strong>Поз. 3 / LED6 (BMS-485 Connect)</strong>: якщо коробка не бачить батарею більше 8 с, вона навмисно зупиняє CAN-зв'язок для захисту акумуляторів.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Поз. 3 / LED6 (BMS-485 Connect) не блимає взагалі або блимає раз на 6–8 секунд без відповіді</strong></td>
@@ -1298,7 +1301,7 @@ COM-Box повністю усуває цю проблему за допомог�
 <li><strong>Time to Empty:</strong> прогнозує залишок часу автономної роботи під поточним навантаженням (наприклад: <em>«автономність: ~6 год 15 хв при 850 Вт»</em>).</li>
 <li><strong>3-режимний адаптивний SOC:</strong> фізичний розрахунок відсотка заряду за адаптивними кривими (заряд/розряд/спокій) поруч із заводським кулонометром BMS (регістр 0024), що захищає від помилок лічильника BMS і дає чесні 65–66% під час заряду струмом.</li>
 <li><strong>⚙️ Розумний калькулятор налаштувань інвертора (Inverter Settings Calculator):</strong></li>
-<li>Кнопка <strong>«⚙️ Налаштування інвертора»</strong> автоматично формує готові інженерні параметри підключення під фактичну кількість виявлених блоків (Deye, Victron, Luxpower):<ul>
+<li>Кнопка <strong>«⚙️ Налаштування інвертора»</strong> автоматично формує готові інженерні параметри підключення під фактичну кількість виявлених блоків (SANDISOLAR, Victron, Luxpower):<ul>
 <li><strong>Bulk / Absorption:</strong> Safe 3.50 В/ком (52.50 В для 15S) / Max 3.55 В/ком (53.25 В).</li>
 <li><strong>Float Voltage:</strong> 3.37 В/ком (50.55 В).</li>
 <li><strong>Low Battery Cut-off:</strong> 2.95 В/ком (44.25 В).</li>
@@ -1416,17 +1419,17 @@ python3 tools/bms_web.py --selftest
    * Повний аудит стабільності комірок, розкиду опорів та активності балансирів.</p>
 <hr/>
 <h3 id="115-can-toolscan_sniffpy">11.5. CAN-сніфер шини інвертора (<code>tools/can_sniff.py</code>)</h3>
-<p>Для контролю вихідних пакетів COM-Box, які надсилаються в порт інвертора Deye (500 кбіт/с, Pylontech), призначена консольна утиліта <a href="tools/can_sniff.py"><code>tools/can_sniff.py</code></a>. Вона підтримує USB-адаптери з протоколом SLCAN (зокрема <strong>WeAct Studio USB to CAN Module V2</strong>):</p>
+<p>Для контролю вихідних пакетів COM-Box, які надсилаються в порт інвертора SANDISOLAR (500 кбіт/с, Pylontech), призначена консольна утиліта <a href="tools/can_sniff.py"><code>tools/can_sniff.py</code></a>. Вона підтримує USB-адаптери з протоколом SLCAN (зокрема <strong>WeAct Studio USB to CAN Module V2</strong>):</p>
 <ol>
 <li><strong>Автоматичне виявлення:</strong> самостійно знаходить WeAct USB2CAN V2 за USB VID:PID (<code>0x0483:0x5740</code>) без потреби вручну шукати назву порту.</li>
 <li><strong>Робота без інвертора (на стенді):</strong> у стандартному режимі (<code>NORMAL</code>) адаптер WeAct автоматично формує апаратне підтвердження (ACK) для кожного кадру COM-Box. Це запобігає зависанню передавача коробки у циклі повтору (<code>auto-retransmit</code>) без підключеного інвертора.</li>
-<li><strong>Пасивний моніторинг (<code>--listen-only</code>):</strong> режим без генерації ACK для безпечного спостереження за шиною на працюючому об'єкті з увімкненим інвертором Deye.</li>
+<li><strong>Пасивний моніторинг (<code>--listen-only</code>):</strong> режим без генерації ACK для безпечного спостереження за шиною на працюючому об'єкті з увімкненим інвертором SANDISOLAR.</li>
 <li><strong>Миттєве декодування:</strong> розшифровує у реальному часі ліміти напруг і струмів (<code>0x351</code>), SOC/SOH (<code>0x355</code>), поточну напругу/струм/температуру (<code>0x356</code>), біти аварійних захистів (<code>0x359</code>), запит балансування (<code>0x35C</code>), бренд (<code>0x35E</code>) та системний час інвертора (<code>0x305</code>).</li>
 </ol>
 <pre><code class="language-bash"># Автопошук адаптера та перегляд живого потоку розшифрованих пакетів:
 python3 tools/can_sniff.py
 
-# Пасивний режим моніторингу разом із працюючим інвертором Deye:
+# Пасивний режим моніторингу разом із працюючим інвертором SANDISOLAR:
 python3 tools/can_sniff.py --listen-only
 
 # Перевірка правильності роботи парсера:
@@ -1457,12 +1460,12 @@ python3 tools/can_sniff.py --selftest
 ├────────────────────────────────────────────────────────────────────────┤
 │ 1. КАБЕЛІ ТА РОЗПІНОВКА:                                               │
 │    • BMS-485 (до АКБ, прямий): Pin 1 = GND | Pin 5 = B (-) | Pin 6 = A(+)│
-│    • КРОС-КАБЕЛЬ CAN (COM-Box ↔ Deye):                                 │
-│      COM-Box Pin 8 (CAN-H) ────────► Deye Pin 4 (CAN-H)                │
-│      COM-Box Pin 7 (CAN-L) ────────► Deye Pin 5 (CAN-L)                │
-│      COM-Box Pin 1 (GND)   ────────► Deye Pin 3 (BMS-GND_485)          │
-│      ⚠️ В Deye піни 1,2 запаралелені з 7,8 під RS-485!                 │
-│      Прямий патч-корд 1-в-1 між COM-Box та Deye НЕ ПРАЦЮВАТИМЕ!        │
+│    • КРОС-КАБЕЛЬ CAN (COM-Box ↔ SANDISOLAR):                                 │
+│      COM-Box Pin 8 (CAN-H) ────────► SANDISOLAR Pin 4 (CAN-H)                │
+│      COM-Box Pin 7 (CAN-L) ────────► SANDISOLAR Pin 5 (CAN-L)                │
+│      COM-Box Pin 1 (GND)   ────────► SANDISOLAR Pin 3 (BMS-GND_485)          │
+│      ⚠️ В SANDISOLAR піни 1,2 запаралелені з 7,8 під RS-485!                 │
+│      Прямий патч-корд 1-в-1 між COM-Box та SANDISOLAR НЕ ПРАЦЮВАТИМЕ!        │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 2. ПЕРЕМИКАЧІ НА COM-BOX (DIP 1..5 на торці B):                        │
 │    • DIP 1: OFF = 100% (54.0 В)          | ON = 90% (51.8 В + Eco-баланс)│
@@ -1473,12 +1476,12 @@ python3 tools/can_sniff.py --selftest
 ├────────────────────────────────────────────────────────────────────────┤
 │ 3. СВІТЛОДІОДИ (ВЕРХНЯ КРИШКА):                                        │
 │    • (1) PCS-485 Connect: Спалахи = Активність діагностики / ПК        │
-│    • (2) PCS-CAN Connect: Спалахи 1 Гц = Передача на інвертор Deye     │
+│    • (2) PCS-CAN Connect: Спалахи 1 Гц = Передача на інвертор SANDISOLAR     │
 │    • (3) BMS-485 Connect: Спалахи = Запити до батарей Vision           │
 │    • (4) Running:         Світить постійно = Нормальна робота системи  │
 │    • Внутрішній LED1: Вимк = 54 В | Блимає = Баланс | Світить = 51.8 В │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 4. НАЛАШТУВАННЯ DEYE:                                                  │
+│ 4. НАЛАШТУВАННЯ FELICITY:                                                  │
 │    Battery Setting ──► Lithium ──► Mode 00 (Pylontech CAN, 500 kbps)   │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 5. АДРЕСАЦІЯ АКБ VISION (4-DIP "ID" на батареї, важіль ВГОРУ = ON):    │

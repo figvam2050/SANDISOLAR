@@ -1,6 +1,7 @@
 /**
- * BMS 485 to CAN Converter for Felicity Solar Inverter (Lithium Mode 0 - Pylontech CAN
- * CAN / Pylontech). Hardware: GD32F305 + ISO1050 (CAN) + CA-IS3080WX (RS485)
+ * BMS 485 to CAN Converter for SANDISOLAR SD-PRO-EU 6.5K Inverter
+ * (BMS communication mode: CAN, Battery protocol: PYLON / Pylontech CAN).
+ * Hardware: GD32F305 + ISO1050 (CAN) + CA-IS3080WX (RS485)
  *
  * Frame set and layout follow "PCS CAN-Bus-protocol-DY-low-voltage V3.3" and
  * "PYLON low voltage Protocol CAN Bus v2.0.6": standard frames, 500 kbit/s,
@@ -265,7 +266,7 @@ static uint8_t calc_adaptive_soc(uint16_t avg_cell_mv, uint16_t min_cell_mv,
                                  uint16_t max_cell_mv, float current_a,
                                  float pack_v) {
   uint8_t soc = 0;
-  // Felicity/Pylontech CAN: current < -0.5A is charge, current > +0.5A is discharge
+  // SANDISOLAR/Pylontech CAN: current < -0.5A is charge, current > +0.5A is discharge
   if (current_a < -0.5f) {
     uint8_t n = sizeof(lfp_charge_table) / sizeof(lfp_charge_table[0]);
     soc = interpolate_soc(lfp_charge_table, n, avg_cell_mv);
@@ -374,7 +375,7 @@ static uint8_t calc_adaptive_soc(uint16_t avg_cell_mv, uint16_t min_cell_mv,
 #define CAN_PROT_SYSTEM_ERROR  0x08
 
 // RS485 register units -> physical units. Confirm against the battery model.
-// reg1 current: 1 = BMS reports charge as positive (negated for Felicity/Pylontech CAN),
+// reg1 current: 1 = BMS reports charge as positive (negated for SANDISOLAR/Pylontech CAN),
 //               0 = BMS reports discharge as positive (passed through).
 #define BMS_CURRENT_CHARGE_IS_POSITIVE 1
 // reg19 temperature raw divisor: 1 = reg 0x13 holds whole C (dump 08.10.2026).
