@@ -1,0 +1,52 @@
+# --- PlatformIO build artifacts ---
+.pio/
+.cache/
+compile_commands.json
+
+# --- VS Code & IDE settings ---
+.vscode/
+.idea/
+
+# --- OS generated files ---
+.DS_Store
+._*
+.Spotlight-V100
+.fseventsd
+Thumbs.db
+desktop.ini
+
+# --- Python cache & virtual environments ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# --- Heavy documentation & PDFs (tracked locally only) ---
+felicity_docs/
+deye/
+*.pdf
+!docs/images/*
+
+# --- Factory toolkits, raw vendor dumps & recovery binaries ---
+120-200177-01(GD305COMBOX_V102_20230904)/
+GD32F30x_Firmware_Library_V3.0.3/
+GD32F30x_DFP.pack
+combobox_bkp_40000.bin
+*.bin
+!compiled_firmware/*.bin
+!compiled_firmware_app/*.bin
+
+# --- Reverse-engineering intermediate dumps & tool artifacts ---
+original_firmware/backups/
+original_firmware/dumps/
+original_firmware/tools/db.json
+can_sniffer/backups/
+
+# --- Bus logs & temporary session dumps ---
+*.csv
+*.log
+*.tmp
+*.bak
+*~
+
