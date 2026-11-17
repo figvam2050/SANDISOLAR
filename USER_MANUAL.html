@@ -228,7 +228,7 @@ hr {
 <li><a href="#3-vision">Адресація та комутація акумуляторних блоків Vision</a></li>
 <li><a href="#4-dip-com-box">Налаштування DIP-перемикачів на COM-Box</a></li>
 <li><a href="#5-led">Світлодіодна індикація (LED): Як читати стан коробки</a></li>
-<li><a href="#6-felicity">Налаштування інвертора SANDISOLAR</a></li>
+<li><a href="#6-налаштування-інвертора-sandisolar-sd-pro-eu-65k">Налаштування інвертора SANDISOLAR</a></li>
 <li><a href="#7-">Режими експлуатації, безпека та авто-балансування</a></li>
 <li><a href="#8-dip-11">Практичні рекомендації щодо вибору комбінацій DIP-перемикачів при графіках відключень</a></li>
 <li><a href="#9-">Покроковий чек-лист першого запуску</a></li>
@@ -241,7 +241,7 @@ hr {
 <h2 id="1-com-box">1. Огляд системи та призначення COM-Box</h2>
 <h3 id="11">1.1. Яку проблему вирішує пристрій</h3>
 <p>Акумуляторні батареї <strong>Vision V-LFP48100</strong> (15 послідовних елементів LiFePO4, номінальна напруга 48 В, ємність 100 А·год) оснащені внутрішньою платою керування (BMS), яка підтримує обмін даними за протоколом <strong>RS-485 (Modbus RTU)</strong>. </p>
-<p>Гібридні інвертори <strong>SANDISOLAR</strong> (а також сумісні IVEM / IVAM) для точного керування зарядом та розрядом очікують високошвидкісну автомобільну шину <strong>CAN (протокол Pylontech CAN v2.0.6, 500 кбіт/с)</strong>.</p>
+<p>Гібридні інвертори <strong>SANDISOLAR SD-PRO-EU 6.5K</strong> для точного керування зарядом та розрядом очікують високошвидкісну шину <strong>CAN (протокол Pylontech CAN v2.0.6 / <code>PYLON</code>, 500 кбіт/с)</strong>.</p>
 <p>Без пристрою COM-Box інвертор змушений працювати з літієвими батареями в «сліпому» свинцево-кислотному режимі (по загальній напрузі), що призводить до:
 * Передчасного вимкнення інвертора при розряді.
 * Небезпеки перезаряду або перегріву окремих слабких комірок.
@@ -967,27 +967,35 @@ hr {
   * <strong>5 спалахів:</strong> Втрата зв'язку з акумуляторами по RS-485 (таймаут &gt; 8 с).</p>
 <hr/>
 <h2 id="6-sandisolar-sd-pro-eu-65k">6. Налаштування інвертора SANDISOLAR (SD-PRO-EU 6.5K)</h2>
-<p>Щоб інвертор SANDISOLAR перейшов під повноцінне керування COM-Box, виконайте налаштування на екрані інвертора згідно з офіційним керівництвом (розділ 7 / сторінка "Batt Set 3"):</p>
-<pre><code>[Головний екран] ──► [Налаштування (Settings)] ──► [Battery Setup] ──► [Batt Set 3]
+<p>Щоб інвертор <strong>SANDISOLAR SD-PRO-EU 6.5K</strong> перейшов під повноцінне керування COM-Box, виконайте налаштування на сенсорному екрані інвертора згідно з офіційним керівництвом (<code>SOLAR HYBRID INVERTER V1.1</code>, сторінки <strong>Battery Settings (Lithium) (2/3)</strong> та <strong>(3/3)</strong>):</p>
+<pre><code>[Головний екран] ──► [Налаштування] ──► [Battery Settings (Lithium) (2/3)]
 </code></pre>
 <h3 id="61-sandisolar">6.1. Покрокові параметри в меню SANDISOLAR:</h3>
-<ol>
-<li><strong>Battery Mode (Тип батареї):</strong></li>
-<li>Оберіть режим: <strong><code>Lithium</code></strong>.</li>
-<li><strong>Код протоколу BMS:</strong></li>
-<li>Встановіть код: <strong><code>0</code></strong> (або <code>1</code> / <code>2</code> залежно від моделі — стандартний Pylontech CAN v2.0.6 на швидкості 500 кбіт/с).</li>
-<li><strong>Параметри автономної роботи (Shutdown / Low Batt / Restart):</strong></li>
-<li><strong>Shutdown (Вимкнення):</strong> рівень SOC (за замовчуванням <code>10%</code>), при досягненні якого інвертор припиняє розряд і залишає живлення лише на заряд від сонця.</li>
-<li><strong>Low Batt (Низький заряд):</strong> рівень підтримки від мережі Grid Charge (за замовчуванням <code>20%</code>).</li>
-<li><strong>Restart (Перезапуск):</strong> рівень відновлення видачі 220 В після розряду (за замовчуванням <code>40%</code>).</li>
-<li><strong>BMS Err Stop:</strong></li>
-<li>Рекомендується ввімкнути захист зупинки при втраті зв'язку з BMS для безпеки LiFePO4 банку.</li>
-</ol>
+<p><strong>Сторінка <code>Battery Settings (Lithium) (2/3)</code>:</strong>
+1. <strong>BMS communication mode:</strong>
+   * Оберіть <strong><code>CAN</code></strong> (увага: <code>485</code> та <code>Disable</code> не підходять, COM-Box працює по шині CAN).
+2. <strong>Battery communication protocol:</strong>
+   * Оберіть <strong><code>PYLON</code></strong> (PYLONTECH — протокол за замовчуванням, 500 кбіт/с).
+3. <strong>On-grid discharge cutoff SOC (%):</strong>
+   * Поріг припинення розряду при роботі з мережею (за замовчуванням <code>50%</code>, діапазон <code>10~90%</code>).
+4. <strong>On-grid end-of-discharge recovery SOC (%):</strong>
+   * Рівень відновлення розряду в мережевому режимі (за замовчуванням <code>90%</code>, діапазон <code>20~100%</code>).
+5. <strong>Off-grid discharge cutoff SOC (%):</strong>
+   * Поріг припинення розряду в автономному режимі (за замовчуванням <code>20%</code>, діапазон <code>5~90%</code>).</p>
+<p><strong>Сторінка <code>Battery Settings (Lithium) (3/3)</code>:</strong>
+6. <strong>Off-grid end-of-discharge recovery SOC (%):</strong>
+   * Рівень відновлення автономного живлення після розряду (за замовчуванням <code>30%</code>, діапазон <code>10~100%</code>).
+7. <strong>Charging cut-off SOC (%):</strong>
+   * Поріг зупинки заряду по SOC (за замовчуванням <code>100%</code>).</p>
+<blockquote>
+<p><strong>Підказка щодо кабелю (порт BMS RJ45 на інверторі):</strong>
+Інвертор використовує комбінований порт RJ45: <strong>Pin 4 = <code>CANH</code></strong>, <strong>Pin 5 = <code>CANL</code></strong>, <strong>Pin 3 та Pin 7 = <code>GND</code></strong> (Pin 1/2 — це RS485, для CAN не використовуються).</p>
+</blockquote>
 <h3 id="62">6.2. Як переконатися, що зв'язок встановлено успішно:</h3>
 <ul>
 <li>На головному екрані інвертора відображається точний відсоток заряду <strong>SOC %</strong>, отриманий від COM-Box.</li>
-<li>Зникне попередження про відсутність зв'язку (помилка зв'язку BMS / BMS Comm Fault).</li>
-<li>На сторінці телеметрії BMS інвертора відображаються реальні параметри банку:</li>
+<li>Зникнуть помилки зв'язку з BMS: <strong><code>Fault 307</code></strong> (<em>Battery communication fault</em>) та <strong><code>Alarm 304</code></strong> (<em>Abnormal BMS information</em>).</li>
+<li>На сторінці телеметрії батареї інвертора відображаються реальні параметри банку:</li>
 <li>Загальна напруга банку (В).</li>
 <li>Реальний струм заряду/розряду (А).</li>
 <li>Максимальна температура комірок банку (°C).</li>
@@ -1211,7 +1219,7 @@ COM-Box повністю усуває цю проблему за допомог�
 <li>[ ] <strong>Крок 4. Подача живлення:</strong> Увімкніть автомати постійного струму на акумуляторах. Підключіть живлення до клем <code>B+</code> та <code>B-</code> коробки. Переконайтеся, що світлодіоди <strong>LED2 (VDDA на платі)</strong> та <strong>Поз. 4 / LED5 (Running)</strong> стабільно світяться зеленим.</li>
 <li>[ ] <strong>Крок 5. Перевірка зв'язку з батареями:</strong> Підключіть кабель <code>BMS-485</code> до першого блоку. Протягом кількох секунд світлодіод <strong>Поз. 3 / LED6 (BMS-485)</strong> повинен почати ритмічно спалахувати (запити блоків).</li>
 <li>[ ] <strong>Крок 6. Підключення до інвертора:</strong> Підключіть <strong>спеціальний крос-кабель CAN</strong> (сторона COM-Box: піни 8, 7, 1 ──► сторона SANDISOLAR: піни 4, 5, 3) до гнізда <code>BMS</code> інвертора SANDISOLAR (Pin 3 = BMS-GND; піни 1, 2, 6, 7, 8 з боку SANDISOLAR не підключати!). Переконайтеся, що світлодіод <strong>Поз. 2 / LED4 (PCS-CAN)</strong> на COM-Box рівномірно блимає з частотою 1 Гц (раз на секунду).</li>
-<li>[ ] <strong>Крок 7. Активація на інверторі:</strong> У меню інвертора оберіть <code>BMS CAN / PYLON0</code>. Перевірте, що на екрані з'явився коректний відсоток SOC, напруга та зникла помилка F20 (або F58 на трифазних моделях). Систему успішно введено в роботу!</li>
+<li>[ ] <strong>Крок 7. Активація на інверторі:</strong> У меню інвертора <code>Battery Settings (Lithium) (2/3)</code> оберіть <code>BMS communication mode: CAN</code> та <code>Battery communication protocol: PYLON</code>. Перевірте, що на екрані з'явився коректний відсоток SOC, напруга та зникла помилка <code>Fault 307</code> (<em>Battery communication fault</em>). Систему успішно введено в роботу!</li>
 </ul>
 <hr/>
 <div class="table-card"><h2 id="10-troubleshooting" style="break-before: page; page-break-before: always;">10. Пошук та усунення несправностей (Troubleshooting)</h2><table>
@@ -1481,8 +1489,8 @@ python3 tools/can_sniff.py --selftest
 │    • (4) Running:         Світить постійно = Нормальна робота системи  │
 │    • Внутрішній LED1: Вимк = 54 В | Блимає = Баланс | Світить = 51.8 В │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 4. НАЛАШТУВАННЯ FELICITY:                                                  │
-│    Battery Setting ──► Lithium ──► Mode 00 (Pylontech CAN, 500 kbps)   │
+│ 4. НАЛАШТУВАННЯ SANDISOLAR (SD-PRO-EU 6.5K):                            │
+│    Battery Settings(Lithium)(2/3) ──► BMS mode: CAN ──► Protocol: PYLON│
 ├────────────────────────────────────────────────────────────────────────┤
 │ 5. АДРЕСАЦІЯ АКБ VISION (4-DIP "ID" на батареї, важіль ВГОРУ = ON):    │
 │    • Розряди СПРАВА НАЛІВО: DIP 4 = +1 | DIP 3 = +2 | DIP 2 = +4      │
